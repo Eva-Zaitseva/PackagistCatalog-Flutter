@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'common/navigation/app_router.dart';
 import 'common/theme/app_theme.dart';
+import 'common/theme/theme_cubit.dart';
 import 'features/package/data/package_repository.dart';
 import 'features/package/domain/i_package_repository.dart';
 import 'features/package/presentation/bloc/package_list_cubit.dart';
@@ -29,18 +30,32 @@ class PackagistCatalogApp extends StatelessWidget {
             create: (context) =>
                 PackageListCubit(context.read<IPackageRepository>())..load(),
           ),
+          BlocProvider<ThemeCubit>(create: (_) => ThemeCubit()),
         ],
-        child: MaterialApp.router(
-          title: 'PackagistCatalog',
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.light(),
-          darkTheme: AppTheme.dark(),
-          themeMode: ThemeMode.system,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          routerConfig: appRouter,
-        ),
+        child: const _AppView(),
       ),
+    );
+  }
+}
+
+/// Отдельный виджет ниже провайдеров, чтобы читать их состояния
+/// через `context.watch`.
+class _AppView extends StatelessWidget {
+  const _AppView();
+
+  @override
+  Widget build(BuildContext context) {
+    final themeMode = context.watch<ThemeCubit>().state.mode;
+
+    return MaterialApp.router(
+      title: 'PackagistCatalog',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: themeMode,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      routerConfig: appRouter,
     );
   }
 }

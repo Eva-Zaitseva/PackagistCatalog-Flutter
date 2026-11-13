@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../common/theme/theme_cubit.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../bloc/package_list_cubit.dart';
 import '../bloc/package_list_state.dart';
@@ -19,7 +20,12 @@ class PackageListScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.catalog_title)),
+      appBar: AppBar(
+        title: Text(l10n.catalog_title),
+        actions: [
+          const _ThemeMenu(),
+        ],
+      ),
       body: BlocBuilder<PackageListCubit, PackageListState>(
         builder: (context, state) {
           return switch (state) {
@@ -71,6 +77,36 @@ class _CatalogView extends StatelessWidget {
               );
             },
           ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Кнопка меню в шапке: выбор режима темы.
+class _ThemeMenu extends StatelessWidget {
+  const _ThemeMenu();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return PopupMenuButton<ThemeMode>(
+      icon: const Icon(Icons.brightness_6_outlined),
+      tooltip: l10n.theme_setting,
+      onSelected: (mode) => context.read<ThemeCubit>().set(mode),
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: ThemeMode.system,
+          child: Text(l10n.theme_system),
+        ),
+        PopupMenuItem(
+          value: ThemeMode.light,
+          child: Text(l10n.theme_light),
+        ),
+        PopupMenuItem(
+          value: ThemeMode.dark,
+          child: Text(l10n.theme_dark),
         ),
       ],
     );
