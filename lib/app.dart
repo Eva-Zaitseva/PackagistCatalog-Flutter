@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'common/localization/locale_cubit.dart';
 import 'common/navigation/app_router.dart';
 import 'common/theme/app_theme.dart';
 import 'common/theme/theme_cubit.dart';
@@ -31,6 +32,7 @@ class PackagistCatalogApp extends StatelessWidget {
                 PackageListCubit(context.read<IPackageRepository>())..load(),
           ),
           BlocProvider<ThemeCubit>(create: (_) => ThemeCubit()),
+          BlocProvider<LocaleCubit>(create: (_) => LocaleCubit()),
         ],
         child: const _AppView(),
       ),
@@ -46,6 +48,7 @@ class _AppView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeMode = context.watch<ThemeCubit>().state.mode;
+    final locale = context.watch<LocaleCubit>().state.locale;
 
     return MaterialApp.router(
       title: 'PackagistCatalog',
@@ -53,6 +56,7 @@ class _AppView extends StatelessWidget {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: themeMode,
+      locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: appRouter,

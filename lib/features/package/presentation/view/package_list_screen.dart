@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../common/localization/locale_cubit.dart';
 import '../../../../common/theme/theme_cubit.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../bloc/package_list_cubit.dart';
@@ -24,6 +25,7 @@ class PackageListScreen extends StatelessWidget {
         title: Text(l10n.catalog_title),
         actions: [
           const _ThemeMenu(),
+          const _LanguageMenu(),
         ],
       ),
       body: BlocBuilder<PackageListCubit, PackageListState>(
@@ -107,6 +109,46 @@ class _ThemeMenu extends StatelessWidget {
         PopupMenuItem(
           value: ThemeMode.dark,
           child: Text(l10n.theme_dark),
+        ),
+      ],
+    );
+  }
+}
+
+/// Кнопка меню в шапке: выбор языка подписей интерфейса.
+class _LanguageMenu extends StatelessWidget {
+  const _LanguageMenu();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.language),
+      tooltip: l10n.language_setting,
+      onSelected: (value) {
+        final cubit = context.read<LocaleCubit>();
+        switch (value) {
+          case 'ru':
+            cubit.setRussian();
+          case 'en':
+            cubit.setEnglish();
+          default:
+            cubit.setSystem();
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'system',
+          child: Text(l10n.language_system),
+        ),
+        PopupMenuItem(
+          value: 'ru',
+          child: Text(l10n.language_russian),
+        ),
+        PopupMenuItem(
+          value: 'en',
+          child: Text(l10n.language_english),
         ),
       ],
     );
