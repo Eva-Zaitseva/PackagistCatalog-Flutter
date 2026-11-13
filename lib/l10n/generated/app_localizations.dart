@@ -176,6 +176,12 @@ abstract class AppLocalizations {
   /// **'Пакет не найден в каталоге'**
   String get detail_not_found;
 
+  /// No description provided for @page_not_found.
+  ///
+  /// In ru, this message translates to:
+  /// **'Такой страницы нет'**
+  String get page_not_found;
+
   /// No description provided for @nothing_found_title.
   ///
   /// In ru, this message translates to:

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/generated/app_localizations.dart';
 import '../bloc/package_list_cubit.dart';
@@ -63,8 +64,9 @@ class _CatalogView extends StatelessWidget {
               final package = state.packages[index];
               return PackageCard(
                 package: package,
+                // Имя содержит '/', в пути оно идёт закодированным.
                 onTap: () {
-                  // Навигация появится на следующем этапе вместе с роутером.
+                  context.push('/package/${Uri.encodeComponent(package.name)}');
                 },
               );
             },

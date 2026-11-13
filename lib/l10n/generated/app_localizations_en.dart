@@ -57,6 +57,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get detail_not_found => 'Package not found in the catalog';
 
   @override
+  String get page_not_found => 'There is no such page';
+
+  @override
   String get nothing_found_title => 'Nothing found';
 
   @override

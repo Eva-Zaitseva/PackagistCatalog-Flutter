@@ -57,6 +57,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get detail_not_found => 'Пакет не найден в каталоге';
 
   @override
+  String get page_not_found => 'Такой страницы нет';
+
+  @override
   String get nothing_found_title => 'Ничего не найдено';
 
   @override

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'common/navigation/app_router.dart';
 import 'common/theme/app_theme.dart';
 import 'features/package/data/package_repository.dart';
 import 'features/package/domain/i_package_repository.dart';
 import 'features/package/presentation/bloc/package_list_cubit.dart';
-import 'features/package/presentation/view/package_list_screen.dart';
 import 'l10n/generated/app_localizations.dart';
 
 /// Корень приложения: репозиторий и общие Cubit регистрируются здесь,
@@ -30,7 +30,7 @@ class PackagistCatalogApp extends StatelessWidget {
                 PackageListCubit(context.read<IPackageRepository>())..load(),
           ),
         ],
-        child: MaterialApp(
+        child: MaterialApp.router(
           title: 'PackagistCatalog',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light(),
@@ -38,7 +38,7 @@ class PackagistCatalogApp extends StatelessWidget {
           themeMode: ThemeMode.system,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const PackageListScreen(),
+          routerConfig: appRouter,
         ),
       ),
     );

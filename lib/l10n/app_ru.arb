@@ -33,6 +33,7 @@
   "open_package": "Открыть пакет",
   "package_not_found": "Нет в тестовом каталоге",
   "detail_not_found": "Пакет не найден в каталоге",
+  "page_not_found": "Такой страницы нет",
   "nothing_found_title": "Ничего не найдено",
   "nothing_found_subtitle": "По запросу «{query}» нет ни одного пакета. Попробуйте изменить запрос.",
   "@nothing_found_subtitle": {

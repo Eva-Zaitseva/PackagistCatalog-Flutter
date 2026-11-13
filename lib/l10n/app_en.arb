@@ -33,6 +33,7 @@
   "open_package": "Open package",
   "package_not_found": "Not in the test catalog",
   "detail_not_found": "Package not found in the catalog",
+  "page_not_found": "There is no such page",
   "nothing_found_title": "Nothing found",
   "nothing_found_subtitle": "No packages match \"{query}\". Try a different query.",
   "@nothing_found_subtitle": {
