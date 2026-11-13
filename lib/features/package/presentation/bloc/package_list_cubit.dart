@@ -13,10 +13,38 @@ class PackageListCubit extends Cubit<PackageListState> {
 
   final IPackageRepository _repository;
 
-  /// Загружает весь каталог.
-  Future<void> load() async {
+  /// Последний отправленный запрос: ответы на устаревшие запросы
+  /// отбрасываются.
+  String? _latestQuery;
+
+  /// Загружает весь каталог — тот же поиск по пустому запросу.
+  Future<void> load() => search('');
+
+  /// Ищет по имени и описанию; пустой запрос возвращает весь каталог.
+  Future<void> search(String query) async {
+    _latestQuery = query;
+
     final packages = await _repository.getAll();
-    if (isClosed) return;
-    emit(PackageListLoaded(packages: packages));
+    if (isClosed || _latestQuery != query) return;
+
+    final normalized = query.trim().toLowerCase();
+    if (normalized.isEmpty) {
+      emit(PackageListLoaded(query: query, packages: packages));
+      return;
+    }
+
+    final found = packages
+        .where(
+          (package) =>
+              package.name.toLowerCase().contains(normalized) ||
+              package.description.toLowerCase().contains(normalized),
+        )
+        .toList();
+
+    if (found.isEmpty) {
+      emit(PackageListNotFound(query: query));
+    } else {
+      emit(PackageListLoaded(query: query, packages: found));
+    }
   }
 }
