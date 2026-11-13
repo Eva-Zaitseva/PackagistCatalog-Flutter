@@ -1,0 +1,51 @@
+{
+  "@@locale": "ru",
+  "catalog_title": "Каталог PHP-пакетов",
+  "search_packages": "Поиск пакетов",
+  "search_hint": "Например, laravel",
+  "package_count": "Найдено пакетов: {count}",
+  "@package_count": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "version": "Версия: {version}",
+  "@version": {
+    "placeholders": {
+      "version": { "type": "String" }
+    }
+  },
+  "downloads": "Загрузки: {downloads}",
+  "@downloads": {
+    "placeholders": {
+      "downloads": { "type": "String" }
+    }
+  },
+  "stars": "Звёзды: {stars}",
+  "@stars": {
+    "placeholders": {
+      "stars": { "type": "int" }
+    }
+  },
+  "package_information": "Информация о пакете",
+  "dependencies_title": "Зависимости (require)",
+  "no_dependencies": "У этого пакета нет указанных зависимостей.",
+  "open_package": "Открыть пакет",
+  "package_not_found": "Нет в тестовом каталоге",
+  "detail_not_found": "Пакет не найден в каталоге",
+  "nothing_found_title": "Ничего не найдено",
+  "nothing_found_subtitle": "По запросу «{query}» нет ни одного пакета. Попробуйте изменить запрос.",
+  "@nothing_found_subtitle": {
+    "placeholders": {
+      "query": { "type": "String" }
+    }
+  },
+  "theme_setting": "Тема",
+  "theme_system": "Системная",
+  "theme_light": "Светлая",
+  "theme_dark": "Тёмная",
+  "language_setting": "Язык",
+  "language_system": "Системный",
+  "language_russian": "Русский",
+  "language_english": "Английский"
+}
