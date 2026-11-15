@@ -24,8 +24,8 @@ const bool _kDebugLog = !bool.fromEnvironment('dart.vm.product');
 Dio createDio() {
   final dio = Dio();
   dio.options
-    ..connectTimeout = const Duration(seconds: 10)
-    ..receiveTimeout = const Duration(seconds: 20)
+    ..connectTimeout = const Duration(seconds: 15)
+    ..receiveTimeout = const Duration(seconds: 30)
     // Packagist просит указывать контакт в User-Agent.
     ..headers['User-Agent'] = 'PackagistCatalog-Lab/1.0 (flutter study app)';
 
