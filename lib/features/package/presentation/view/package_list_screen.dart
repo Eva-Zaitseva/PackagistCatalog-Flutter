@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../common/localization/locale_cubit.dart';
 import '../../../../common/theme/theme_cubit.dart';
+import '../../../../common/widgets/load_error_view.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/php_package.dart';
 import '../bloc/package_list_cubit.dart';
@@ -34,13 +35,27 @@ class PackageListScreen extends StatelessWidget {
           return switch (state) {
             PackageListLoading() =>
               const Center(child: CircularProgressIndicator()),
-            PackageListLoaded(:final query, :final packages) => _CatalogBody(
-                query: query,
-                packages: packages,
+            PackageListLoaded() => _CatalogBody(
+                query: state.query,
+                packages: state.packages,
+                total: state.total,
+                hasMore: state.hasMore,
+                isLoadingMore: state.isLoadingMore,
+                loadMoreFailed: state.loadMoreFailed,
               ),
             PackageListNotFound(:final query) => _CatalogBody(
                 query: query,
                 packages: const [],
+                total: 0,
+                hasMore: false,
+                isLoadingMore: false,
+                loadMoreFailed: false,
+              ),
+            PackageListFailure(:final query, :final exception) => LoadErrorView(
+                exception: exception,
+                // Повторяем тот же запрос: и весь каталог, и поиск.
+                onRetry: () =>
+                    context.read<PackageListCubit>().search(query),
               ),
           };
         },
@@ -57,10 +72,18 @@ class _CatalogBody extends StatelessWidget {
   const _CatalogBody({
     required this.query,
     required this.packages,
+    required this.total,
+    required this.hasMore,
+    required this.isLoadingMore,
+    required this.loadMoreFailed,
   });
 
   final String query;
   final List<PhpPackage> packages;
+  final int total;
+  final bool hasMore;
+  final bool isLoadingMore;
+  final bool loadMoreFailed;
 
   @override
   Widget build(BuildContext context) {
@@ -81,12 +104,17 @@ class _CatalogBody extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
             child: Text(
-              l10n.package_count(packages.length),
+              l10n.package_count(total),
               style: Theme.of(context).textTheme.titleSmall,
             ),
           ),
           Expanded(
-            child: _PackageListView(packages: packages),
+            child: _PackageListView(
+              packages: packages,
+              hasMore: hasMore,
+              isLoadingMore: isLoadingMore,
+              loadMoreFailed: loadMoreFailed,
+            ),
           ),
         ],
       ],
@@ -162,35 +190,130 @@ class _SearchFieldState extends State<_SearchField> {
         ),
       ),
       maxLines: 1,
-    );  }
+    );
+  }
 }
 
-/// Список пакетов.
+/// Список пакетов с пагинацией: к концу списка подгружается
+/// следующая страница.
 class _PackageListView extends StatelessWidget {
-  const _PackageListView({required this.packages});
+  const _PackageListView({
+    required this.packages,
+    required this.hasMore,
+    required this.isLoadingMore,
+    required this.loadMoreFailed,
+  });
 
   final List<PhpPackage> packages;
+  final bool hasMore;
+  final bool isLoadingMore;
+  final bool loadMoreFailed;
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-      // PageStorageKey сохраняет позицию прокрутки, даже если
-      // дерево списка пересоздаётся.
-      key: const PageStorageKey('package-list'),
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-      itemCount: packages.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 10),
-      itemBuilder: (context, index) {
-        final package = packages[index];
-        return PackageCard(
-          package: package,
-          // Имя содержит '/', в пути оно идёт закодированным.
-          onTap: () {
-            context.push('/package/${Uri.encodeComponent(package.name)}');
-          },
-        );
+    final l10n = AppLocalizations.of(context)!;
+
+    // Последний элемент — футер пагинации.
+    final itemCount = packages.length + (hasMore ? 1 : 0);
+
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        // Докрутил почти до конца — просим следующую страницу.
+        // Повторные вызовы не страшны: Cubit игнорирует лишние.
+        if (notification.metrics.pixels >=
+            notification.metrics.maxScrollExtent - 200) {
+          context.read<PackageListCubit>().loadMore();
+        }
+        return false;
       },
+      child: ListView.separated(
+        // PageStorageKey сохраняет позицию прокрутки, даже если
+        // дерево списка пересоздаётся.
+        key: const PageStorageKey('package-list'),
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+        itemCount: itemCount,
+        separatorBuilder: (_, _) => const SizedBox(height: 10),
+        itemBuilder: (context, index) {
+          if (index >= packages.length) {
+            return _LoadMoreFooter(
+              isLoadingMore: isLoadingMore,
+              loadMoreFailed: loadMoreFailed,
+              failedText: l10n.load_more_failed,
+              retryText: l10n.retry,
+            );
+          }
+
+          final package = packages[index];
+          return PackageCard(
+            package: package,
+            // Имя содержит '/', в пути оно идёт закодированным.
+            onTap: () {
+              context.push('/package/${Uri.encodeComponent(package.name)}');
+            },
+          );
+        },
+      ),
     );
+  }
+}
+
+/// Футер пагинации: индикатор догрузки или «Повторить» после обрыва.
+class _LoadMoreFooter extends StatelessWidget {
+  const _LoadMoreFooter({
+    required this.isLoadingMore,
+    required this.loadMoreFailed,
+    required this.failedText,
+    required this.retryText,
+  });
+
+  final bool isLoadingMore;
+  final bool loadMoreFailed;
+  final String failedText;
+  final String retryText;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoadingMore) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(12),
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 3),
+          ),
+        ),
+      );
+    }
+
+    if (loadMoreFailed) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            children: [
+              Text(
+                failedText,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+              const SizedBox(height: 4),
+              // Грузится та же страница: сдвигать нумерацию нельзя,
+              // иначе часть списка пропустится.
+              TextButton.icon(
+                onPressed: () => context.read<PackageListCubit>().loadMore(),
+                icon: const Icon(Icons.refresh, size: 18),
+                label: Text(retryText),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Есть ещё страницы, но догрузка ещё не началась.
+    return const SizedBox(height: 8);
   }
 }
 
