@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -30,47 +32,61 @@ class PackageListScreen extends StatelessWidget {
           _LanguageMenu(),
         ],
       ),
-      body: BlocBuilder<PackageListCubit, PackageListState>(
-        builder: (context, state) {
-          return switch (state) {
-            PackageListLoading() =>
-              const Center(child: CircularProgressIndicator()),
-            PackageListLoaded() => _CatalogBody(
-                query: state.query,
-                packages: state.packages,
-                total: state.total,
-                hasMore: state.hasMore,
-                isLoadingMore: state.isLoadingMore,
-                loadMoreFailed: state.loadMoreFailed,
-              ),
-            PackageListNotFound(:final query) => _CatalogBody(
-                query: query,
-                packages: const [],
-                total: 0,
-                hasMore: false,
-                isLoadingMore: false,
-                loadMoreFailed: false,
-              ),
-            PackageListFailure(:final query, :final exception) => LoadErrorView(
-                exception: exception,
-                // Повторяем тот же запрос: и весь каталог, и поиск.
-                onRetry: () =>
-                    context.read<PackageListCubit>().search(query),
-              ),
-          };
-        },
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Поле поиска живёт вне switch по состояниям: пока идёт
+          // загрузка или пришла ошибка, поле не пересоздаётся
+          // и фокус не теряется.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: BlocBuilder<PackageListCubit, PackageListState>(
+              builder: (context, state) {
+                final query = switch (state) {
+                  PackageListLoading() => '',
+                  PackageListLoaded(:final query) => query,
+                  PackageListNotFound(:final query) => query,
+                  PackageListFailure(:final query) => query,
+                };
+                return _SearchField(query: query);
+              },
+            ),
+          ),
+          Expanded(
+            child: BlocBuilder<PackageListCubit, PackageListState>(
+              builder: (context, state) {
+                return switch (state) {
+                  PackageListLoading() =>
+                    const Center(child: CircularProgressIndicator()),
+                  PackageListLoaded() => _CatalogBody(
+                      packages: state.packages,
+                      total: state.total,
+                      hasMore: state.hasMore,
+                      isLoadingMore: state.isLoadingMore,
+                      loadMoreFailed: state.loadMoreFailed,
+                    ),
+                  PackageListNotFound(:final query) => _NotFoundView(query: query),
+                  PackageListFailure(:final query, :final exception) =>
+                    LoadErrorView(
+                      exception: exception,
+                      // Повторяем тот же запрос: и весь каталог, и поиск.
+                      onRetry: () =>
+                          context.read<PackageListCubit>().search(query),
+                    ),
+                };
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-/// Поле поиска и содержимое каталога: список или «ничего не найдено».
-///
-/// Один виджет для Loaded и NotFound, чтобы поле поиска
-/// не пересоздавалось при смене состояния — фокус не теряется.
+/// Список пакетов с пагинацией: к концу списка подгружается
+/// следующая страница.
 class _CatalogBody extends StatelessWidget {
   const _CatalogBody({
-    required this.query,
     required this.packages,
     required this.total,
     required this.hasMore,
@@ -78,7 +94,6 @@ class _CatalogBody extends StatelessWidget {
     required this.loadMoreFailed,
   });
 
-  final String query;
   final List<PhpPackage> packages;
   final int total;
   final bool hasMore;
@@ -93,30 +108,20 @@ class _CatalogBody extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-          child: _SearchField(query: query),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          child: Text(
+            l10n.package_count(total),
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
         ),
-        if (packages.isEmpty)
-          Expanded(
-            child: _NotFoundView(query: query),
-          )
-        else ...[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Text(
-              l10n.package_count(total),
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
+        Expanded(
+          child: _PackageListView(
+            packages: packages,
+            hasMore: hasMore,
+            isLoadingMore: isLoadingMore,
+            loadMoreFailed: loadMoreFailed,
           ),
-          Expanded(
-            child: _PackageListView(
-              packages: packages,
-              hasMore: hasMore,
-              isLoadingMore: isLoadingMore,
-              loadMoreFailed: loadMoreFailed,
-            ),
-          ),
-        ],
+        ),
       ],
     );
   }
@@ -134,7 +139,26 @@ class _SearchField extends StatefulWidget {
 }
 
 class _SearchFieldState extends State<_SearchField> {
+  /// Пауза после последней буквы: уходит один запрос, а не на каждую.
+  static const _debounceDelay = Duration(milliseconds: 400);
+
   late final TextEditingController _controller;
+  Timer? _debounceTimer;
+
+  /// Поиск с задержкой: пока пользователь печатает, запросы не летят.
+  void _searchLater(String value) {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(_debounceDelay, () {
+      if (!mounted) return;
+      context.read<PackageListCubit>().search(value);
+    });
+  }
+
+  /// Поиск сразу: Enter или кнопка сброса.
+  void _searchNow(String value) {
+    _debounceTimer?.cancel();
+    context.read<PackageListCubit>().search(value);
+  }
 
   @override
   void initState() {
@@ -154,6 +178,7 @@ class _SearchFieldState extends State<_SearchField> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -166,9 +191,9 @@ class _SearchFieldState extends State<_SearchField> {
       controller: _controller,
       onChanged: (value) {
         setState(() {}); // прячет/показывает кнопку сброса
-        context.read<PackageListCubit>().search(value);
+        _searchLater(value);
       },
-      onSubmitted: (value) => context.read<PackageListCubit>().search(value),
+      onSubmitted: _searchNow,
       decoration: InputDecoration(
         labelText: l10n.search_packages,
         hintText: l10n.search_hint,
@@ -181,7 +206,7 @@ class _SearchFieldState extends State<_SearchField> {
                   // Сбрасываем и поле, и запрос: иначе список очистится,
                   // а текст в поле останется.
                   _controller.clear();
-                  context.read<PackageListCubit>().search('');
+                  _searchNow('');
                   setState(() {});
                 },
               ),

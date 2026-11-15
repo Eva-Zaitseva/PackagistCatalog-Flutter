@@ -23,9 +23,13 @@ class PackageListCubit extends Cubit<PackageListState> {
   Future<void> load() => search('');
 
   /// Ищет по имени и описанию; пустой запрос возвращает весь каталог.
+  ///
+  /// Loading здесь не эмитится: он нужен только при первой загрузке.
+  /// При новом поиске список остаётся на экране до прихода ответа —
+  /// иначе экран мигал бы спиннером на каждый запрос, а поле теряло
+  /// фокус. Ответ на устаревший запрос всё равно отбрасывается.
   Future<void> search(String query) async {
     final seq = ++_seq;
-    emit(PackageListLoading());
 
     try {
       final page = await _repository.search(query);
