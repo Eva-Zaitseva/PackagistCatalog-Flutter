@@ -1,14 +1,14 @@
 /// PHP-пакет каталога Packagist.
 ///
 /// Доменная модель: только то, что показывает интерфейс.
-/// Специфика источника данных (API, сериализация) появится в ЛР3 в слое data.
+/// Специфика источника данных (API, сериализация) живёт в слое data.
 class PhpPackage {
   const PhpPackage({
     required this.name,
     required this.description,
-    required this.version,
     required this.downloads,
     required this.stars,
+    this.version = '',
     this.require = const {},
   });
 
@@ -18,7 +18,9 @@ class PhpPackage {
 
   final String description;
 
-  /// Версия последнего релиза, например `v12.0.0`.
+  /// Версия последнего стабильного релиза, например `v12.0.0`.
+  ///
+  /// В краткой выдаче поиска версии нет — здесь пустая строка.
   final String version;
 
   /// Количество загрузок в компактной записи, например `350M`.
