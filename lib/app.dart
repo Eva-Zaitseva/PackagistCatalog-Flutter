@@ -3,15 +3,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'common/localization/locale_cubit.dart';
 import 'common/navigation/app_router.dart';
+import 'common/network/dio_client.dart';
 import 'common/theme/app_theme.dart';
 import 'common/theme/theme_cubit.dart';
+import 'features/package/data/api/package_api.dart';
+import 'features/package/data/data_sources/network_package_data_source.dart';
 import 'features/package/data/package_repository.dart';
 import 'features/package/domain/i_package_repository.dart';
 import 'features/package/presentation/bloc/package_list_cubit.dart';
 import 'l10n/generated/app_localizations.dart';
 
-/// Корень приложения: репозиторий и общие Cubit регистрируются здесь,
-/// выше MaterialApp.
+/// Корень приложения: сборка цепочки данных и общие Cubit регистрируются
+/// здесь, выше MaterialApp.
 class PackagistCatalogApp extends StatelessWidget {
   const PackagistCatalogApp({super.key});
 
@@ -19,8 +22,15 @@ class PackagistCatalogApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
       providers: [
+        // Dio создаётся один раз и передаётся в API-клиент через
+        // конструктор; дальше цепочка собирается наружу:
+        // Dio → API → датасорс → репозиторий.
         RepositoryProvider<IPackageRepository>(
-          create: (_) => const PackageRepository(),
+          create: (_) => PackageRepository(
+            NetworkPackageDataSource(
+              PackageApi(createDio()),
+            ),
+          ),
         ),
       ],
       child: MultiBlocProvider(
