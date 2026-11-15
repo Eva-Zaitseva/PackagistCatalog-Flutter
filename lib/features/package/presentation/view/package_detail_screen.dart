@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../common/widgets/load_error_view.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../bloc/package_detail_bloc.dart';
+import '../bloc/package_detail_event.dart';
 import '../bloc/package_detail_state.dart';
 import 'widgets/dependency_card.dart';
 
@@ -27,6 +29,13 @@ class PackageDetailScreen extends StatelessWidget {
               const Center(child: CircularProgressIndicator()),
             PackageDetailNotFound() => Center(
                 child: Text(l10n.detail_not_found),
+              ),
+            PackageDetailFailure(:final name, :final exception) =>
+              LoadErrorView(
+                exception: exception,
+                onRetry: () => context
+                    .read<PackageDetailBloc>()
+                    .add(PackageDetailOpened(name)),
               ),
             PackageDetailLoaded(
               :final package,
