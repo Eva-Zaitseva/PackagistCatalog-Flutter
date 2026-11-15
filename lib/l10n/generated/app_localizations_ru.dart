@@ -51,13 +51,40 @@ class AppLocalizationsRu extends AppLocalizations {
   String get open_package => 'Открыть пакет';
 
   @override
-  String get package_not_found => 'Нет в тестовом каталоге';
+  String get package_not_found => 'Не найден в каталоге';
 
   @override
   String get detail_not_found => 'Пакет не найден в каталоге';
 
   @override
   String get page_not_found => 'Такой страницы нет';
+
+  @override
+  String get retry => 'Повторить';
+
+  @override
+  String get error_loading_title => 'Не удалось загрузить данные';
+
+  @override
+  String get error_network =>
+      'Нет подключения к сети. Проверьте интернет и повторите.';
+
+  @override
+  String get error_timeout => 'Сервер не ответил вовремя. Попробуйте ещё раз.';
+
+  @override
+  String get error_client =>
+      'Сервер отклонил запрос. Проверьте адрес и повторите.';
+
+  @override
+  String get error_server =>
+      'Сервис Packagist временно недоступен. Попробуйте позже.';
+
+  @override
+  String get error_data => 'Пришёл некорректный ответ сервера.';
+
+  @override
+  String get load_more_failed => 'Не удалось загрузить следующую страницу';
 
   @override
   String get nothing_found_title => 'Ничего не найдено';

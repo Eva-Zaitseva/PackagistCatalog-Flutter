@@ -167,7 +167,7 @@ abstract class AppLocalizations {
   /// No description provided for @package_not_found.
   ///
   /// In ru, this message translates to:
-  /// **'Нет в тестовом каталоге'**
+  /// **'Не найден в каталоге'**
   String get package_not_found;
 
   /// No description provided for @detail_not_found.
@@ -181,6 +181,54 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Такой страницы нет'**
   String get page_not_found;
+
+  /// No description provided for @retry.
+  ///
+  /// In ru, this message translates to:
+  /// **'Повторить'**
+  String get retry;
+
+  /// No description provided for @error_loading_title.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось загрузить данные'**
+  String get error_loading_title;
+
+  /// No description provided for @error_network.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет подключения к сети. Проверьте интернет и повторите.'**
+  String get error_network;
+
+  /// No description provided for @error_timeout.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сервер не ответил вовремя. Попробуйте ещё раз.'**
+  String get error_timeout;
+
+  /// No description provided for @error_client.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сервер отклонил запрос. Проверьте адрес и повторите.'**
+  String get error_client;
+
+  /// No description provided for @error_server.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сервис Packagist временно недоступен. Попробуйте позже.'**
+  String get error_server;
+
+  /// No description provided for @error_data.
+  ///
+  /// In ru, this message translates to:
+  /// **'Пришёл некорректный ответ сервера.'**
+  String get error_data;
+
+  /// No description provided for @load_more_failed.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось загрузить следующую страницу'**
+  String get load_more_failed;
 
   /// No description provided for @nothing_found_title.
   ///

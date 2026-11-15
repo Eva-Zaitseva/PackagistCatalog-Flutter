@@ -51,13 +51,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get open_package => 'Open package';
 
   @override
-  String get package_not_found => 'Not in the test catalog';
+  String get package_not_found => 'Not found in the catalog';
 
   @override
   String get detail_not_found => 'Package not found in the catalog';
 
   @override
   String get page_not_found => 'There is no such page';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get error_loading_title => 'Failed to load data';
+
+  @override
+  String get error_network =>
+      'No network connection. Check your internet and try again.';
+
+  @override
+  String get error_timeout => 'The server did not respond in time. Try again.';
+
+  @override
+  String get error_client =>
+      'The server rejected the request. Check the address and try again.';
+
+  @override
+  String get error_server =>
+      'Packagist is temporarily unavailable. Try again later.';
+
+  @override
+  String get error_data => 'The server sent an unexpected response.';
+
+  @override
+  String get load_more_failed => 'Could not load the next page';
 
   @override
   String get nothing_found_title => 'Nothing found';
